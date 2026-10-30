@@ -1,0 +1,375 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CARELINK | Emergency Dashboard</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+    }
+
+    body {
+      background: #f3f6fb;
+      color: #172033;
+    }
+
+    header {
+      background: #102544;
+      color: white;
+      padding: 22px 7%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    header h1 {
+      font-size: 28px;
+      letter-spacing: 1px;
+    }
+
+    header p {
+      color: #cbd8eb;
+      margin-top: 5px;
+      font-size: 14px;
+    }
+
+    .connection {
+      background: #293e5c;
+      padding: 10px 14px;
+      border-radius: 20px;
+      font-size: 13px;
+    }
+
+    main {
+      max-width: 1050px;
+      margin: 32px auto;
+      padding: 0 20px;
+    }
+
+    .welcome {
+      margin-bottom: 24px;
+    }
+
+    .welcome h2 {
+      font-size: 25px;
+      margin-bottom: 8px;
+    }
+
+    .welcome p {
+      color: #68758b;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 20px;
+    }
+
+    .card {
+      background: white;
+      padding: 24px;
+      border-radius: 14px;
+      box-shadow: 0 4px 18px #1527470d;
+      border: 1px solid #e5eaf2;
+    }
+
+    .card h3 {
+      margin-bottom: 18px;
+      font-size: 18px;
+    }
+
+    .status-box {
+      background: #e8f7ee;
+      color: #176b3a;
+      border-radius: 10px;
+      padding: 20px;
+      margin-bottom: 18px;
+    }
+
+    .status-box.alert {
+      background: #ffebeb;
+      color: #b42323;
+    }
+
+    .status-box.acknowledged {
+      background: #e8f7ee;
+      color: #176b3a;
+    }
+
+    .status-box h4 {
+      font-size: 20px;
+      margin-bottom: 8px;
+    }
+
+    .status-box p {
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .buttons {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    button {
+      border: none;
+      border-radius: 8px;
+      padding: 12px 16px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: bold;
+    }
+
+    button:focus-visible {
+      outline: 3px solid #7aa7ff;
+      outline-offset: 3px;
+    }
+
+    .sos-btn {
+      background: #d92d35;
+      color: white;
+    }
+
+    .ack-btn {
+      background: #18864b;
+      color: white;
+    }
+
+    .reset-btn {
+      background: #e9edf4;
+      color: #26364d;
+    }
+
+    button:hover {
+      filter: brightness(0.94);
+    }
+
+    .detail {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 13px 0;
+      border-bottom: 1px solid #edf0f5;
+      font-size: 14px;
+    }
+
+    .detail span {
+      color: #68758b;
+    }
+
+    .detail strong {
+      text-align: right;
+      overflow-wrap: anywhere;
+    }
+
+    .history-list {
+      list-style: none;
+    }
+
+    .history-list li {
+      border-bottom: 1px solid #edf0f5;
+      padding: 13px 0;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .empty {
+      color: #68758b;
+    }
+
+    footer {
+      text-align: center;
+      color: #68758b;
+      font-size: 12px;
+      padding: 28px 16px;
+    }
+
+    @media (max-width: 650px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+
+      header h1 {
+        font-size: 24px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <div>
+      <h1>CARELINK</h1>
+      <p>Smart Emergency Assistance System</p>
+    </div>
+    <div class="connection" id="connection">
+      ● Demo Mode
+    </div>
+  </header>
+
+  <main>
+    <section class="welcome">
+      <h2>Emergency Dashboard</h2>
+      <p>Monitor alerts and track acknowledgement status.</p>
+    </section>
+
+    <section class="grid">
+      <div class="card">
+        <h3>Emergency Status</h3>
+
+        <div class="status-box" id="statusBox" role="status"
+             aria-live="polite">
+          <h4 id="statusTitle">✓ No Active Emergency</h4>
+          <p id="statusMessage">
+            The demo system is ready. No active SOS alert.
+          </p>
+        </div>
+
+        <div class="buttons">
+          <button class="sos-btn" id="sosButton">
+            Simulate SOS
+          </button>
+          <button class="ack-btn" id="ackButton" disabled>
+            Acknowledge
+          </button>
+          <button class="reset-btn" id="resetButton">
+            Reset
+          </button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>System Information</h3>
+
+        <div class="detail">
+          <span>Alert source</span>
+          <strong>Demo interface</strong>
+        </div>
+        <div class="detail">
+          <span>Bluetooth</span>
+          <strong id="bluetoothStatus">Not connected</strong>
+        </div>
+        <div class="detail">
+          <span>Alert time</span>
+          <strong id="alertTime">—</strong>
+        </div>
+        <div class="detail">
+          <span>Response status</span>
+          <strong id="responseStatus">Waiting</strong>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Emergency Event History</h3>
+        <ul class="history-list" id="history">
+          <li class="empty">No demo events recorded yet.</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <h3>How CARELINK Works</h3>
+        <div class="detail">
+          <span>1. Trigger</span>
+          <strong>SOS button pressed</strong>
+        </div>
+        <div class="detail">
+          <span>2. Alert</span>
+          <strong>Local alarm + notification</strong>
+        </div>
+        <div class="detail">
+          <span>3. Response</span>
+          <strong>Helper acknowledges</strong>
+        </div>
+        <p style="color:#68758b;font-size:13px;line-height:1.6;margin-top:16px">
+          This interface currently simulates the workflow.
+          Hardware alerts and Bluetooth messages are not yet connected.
+        </p>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    CARELINK Prototype · For demonstration only ·
+    Not a replacement for official emergency services
+  </footer>
+
+  <script>
+    const statusBox = document.getElementById("statusBox");
+    const statusTitle = document.getElementById("statusTitle");
+    const statusMessage = document.getElementById("statusMessage");
+    const alertTime = document.getElementById("alertTime");
+    const responseStatus = document.getElementById("responseStatus");
+    const ackButton = document.getElementById("ackButton");
+    const history = document.getElementById("history");
+
+    let activeAlert = false;
+    let events = [];
+
+    function currentTime() {
+      return new Date().toLocaleString();
+    }
+
+    function addEvent(message) {
+      events.unshift(currentTime() + " — " + message);
+      history.replaceChildren();
+
+      events.slice(0, 8).forEach(function(event) {
+        const item = document.createElement("li");
+        item.textContent = event;
+        history.appendChild(item);
+      });
+    }
+
+    document.getElementById("sosButton").addEventListener("click", function() {
+      if (activeAlert) return;
+
+      activeAlert = true;
+      statusBox.className = "status-box alert";
+      statusTitle.textContent = "⚠ SOS ALERT ACTIVE";
+      statusMessage.textContent =
+        "Emergency assistance requested. Awaiting acknowledgement.";
+      alertTime.textContent = currentTime();
+      responseStatus.textContent = "Awaiting acknowledgement";
+      ackButton.disabled = false;
+
+      addEvent("SOS alert activated (demo)");
+    });
+
+    ackButton.addEventListener("click", function() {
+      if (!activeAlert) return;
+
+      activeAlert = false;
+      statusBox.className = "status-box acknowledged";
+      statusTitle.textContent = "✓ Alert Acknowledged";
+      statusMessage.textContent =
+        "A helper acknowledged this demo alert.";
+      responseStatus.textContent = "Acknowledged";
+      ackButton.disabled = true;
+
+      addEvent("Alert acknowledged (demo)");
+    });
+
+    document.getElementById("resetButton").addEventListener("click", function() {
+      activeAlert = false;
+      statusBox.className = "status-box";
+      statusTitle.textContent = "✓ No Active Emergency";
+      statusMessage.textContent =
+        "The demo system is ready. No active SOS alert.";
+      alertTime.textContent = "—";
+      responseStatus.textContent = "Waiting";
+      ackButton.disabled = true;
+
+      addEvent("Dashboard reset (demo)");
+    });
+  </script>
+</body>
+</html>
