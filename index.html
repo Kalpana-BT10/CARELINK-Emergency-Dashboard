@@ -205,171 +205,171 @@
   </style>
 </head>
 
-<body>
-  <header>
-    <div>
-      <h1>CARELINK</h1>
-      <p>Smart Emergency Assistance System</p>
-    </div>
-    <div class="connection" id="connection">
-      ● Demo Mode
-    </div>
-  </header>
 
-  <main>
-    <section class="welcome">
-      <h2>Emergency Dashboard</h2>
-      <p>Monitor alerts and track acknowledgement status.</p>
-    </section>
+  
+<script type="module">
+  import { initializeApp } from
+    "https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js";
 
-    <section class="grid">
-      <div class="card">
-        <h3>Emergency Status</h3>
+  import {
+    getDatabase,
+    ref,
+    onValue,
+    push,
+    set,
+    update,
+    serverTimestamp
+  } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-database.js";
 
-        <div class="status-box" id="statusBox" role="status"
-             aria-live="polite">
-          <h4 id="statusTitle">✓ No Active Emergency</h4>
-          <p id="statusMessage">
-            The demo system is ready. No active SOS alert.
-          </p>
-        </div>
+  const firebaseConfig = {
+    apiKey: "PASTE_YOUR_API_KEY",
+    authDomain: "carelink-emergency.firebaseapp.com",
+    databaseURL: "https://carelink-emergency-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "carelink-emergency",
+    storageBucket: "carelink-emergency.firebasestorage.app",
+    messagingSenderId: "913907197319",
+    appId: "1:913907197319:web:549f9f7bf8c1ccc3b55f22"
+  };
 
-        <div class="buttons">
-          <button class="sos-btn" id="sosButton">
-            Simulate SOS
-          </button>
-          <button class="ack-btn" id="ackButton" disabled>
-            Acknowledge
-          </button>
-          <button class="reset-btn" id="resetButton">
-            Reset
-          </button>
-        </div>
-      </div>
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
 
-      <div class="card">
-        <h3>System Information</h3>
+  const alertRef = ref(db, "carelink/currentAlert");
+  const historyRef = ref(db, "carelink/events");
 
-        <div class="detail">
-          <span>Alert source</span>
-          <strong>Demo interface</strong>
-        </div>
-        <div class="detail">
-          <span>Bluetooth</span>
-          <strong id="bluetoothStatus">Not connected</strong>
-        </div>
-        <div class="detail">
-          <span>Alert time</span>
-          <strong id="alertTime">—</strong>
-        </div>
-        <div class="detail">
-          <span>Response status</span>
-          <strong id="responseStatus">Waiting</strong>
-        </div>
-      </div>
+  const statusBox = document.getElementById("statusBox");
+  const statusTitle = document.getElementById("statusTitle");
+  const statusMessage = document.getElementById("statusMessage");
+  const alertTime = document.getElementById("alertTime");
+  const responseStatus = document.getElementById("responseStatus");
+  const ackButton = document.getElementById("ackButton");
+  const connection = document.getElementById("connection");
+  const historyList = document.getElementById("history");
 
-      <div class="card">
-        <h3>Emergency Event History</h3>
-        <ul class="history-list" id="history">
-          <li class="empty">No demo events recorded yet.</li>
-        </ul>
-      </div>
+  function logEvent(message) {
+    return push(historyRef, {
+      message,
+      timestamp: Date.now()
+    });
+  }
 
-      <div class="card">
-        <h3>How CARELINK Works</h3>
-        <div class="detail">
-          <span>1. Trigger</span>
-          <strong>SOS button pressed</strong>
-        </div>
-        <div class="detail">
-          <span>2. Alert</span>
-          <strong>Local alarm + notification</strong>
-        </div>
-        <div class="detail">
-          <span>3. Response</span>
-          <strong>Helper acknowledges</strong>
-        </div>
-        <p style="color:#68758b;font-size:13px;line-height:1.6;margin-top:16px">
-          This interface currently simulates the workflow.
-          Hardware alerts and Bluetooth messages are not yet connected.
-        </p>
-      </div>
-    </section>
-  </main>
+  function showAlert(alert) {
+    const active = alert?.active === true;
+    const acknowledged = alert?.acknowledged === true;
 
-  <footer>
-    CARELINK Prototype · For demonstration only ·
-    Not a replacement for official emergency services
-  </footer>
-
-  <script>
-    const statusBox = document.getElementById("statusBox");
-    const statusTitle = document.getElementById("statusTitle");
-    const statusMessage = document.getElementById("statusMessage");
-    const alertTime = document.getElementById("alertTime");
-    const responseStatus = document.getElementById("responseStatus");
-    const ackButton = document.getElementById("ackButton");
-    const history = document.getElementById("history");
-
-    let activeAlert = false;
-    let events = [];
-
-    function currentTime() {
-      return new Date().toLocaleString();
-    }
-
-    function addEvent(message) {
-      events.unshift(currentTime() + " — " + message);
-      history.replaceChildren();
-
-      events.slice(0, 8).forEach(function(event) {
-        const item = document.createElement("li");
-        item.textContent = event;
-        history.appendChild(item);
-      });
-    }
-
-    document.getElementById("sosButton").addEventListener("click", function() {
-      if (activeAlert) return;
-
-      activeAlert = true;
+    if (active && acknowledged) {
+      statusBox.className = "status-box acknowledged";
+      statusTitle.textContent = "✓ Alert Acknowledged";
+      statusMessage.textContent = "A helper acknowledged this alert.";
+      responseStatus.textContent = "Acknowledged";
+    } else if (active) {
       statusBox.className = "status-box alert";
       statusTitle.textContent = "⚠ SOS ALERT ACTIVE";
       statusMessage.textContent =
-        "Emergency assistance requested. Awaiting acknowledgement.";
-      alertTime.textContent = currentTime();
+        "Assistance requested. Awaiting acknowledgement.";
       responseStatus.textContent = "Awaiting acknowledgement";
-      ackButton.disabled = false;
-
-      addEvent("SOS alert activated (demo)");
-    });
-
-    ackButton.addEventListener("click", function() {
-      if (!activeAlert) return;
-
-      activeAlert = false;
-      statusBox.className = "status-box acknowledged";
-      statusTitle.textContent = "✓ Alert Acknowledged";
-      statusMessage.textContent =
-        "A helper acknowledged this demo alert.";
-      responseStatus.textContent = "Acknowledged";
-      ackButton.disabled = true;
-
-      addEvent("Alert acknowledged (demo)");
-    });
-
-    document.getElementById("resetButton").addEventListener("click", function() {
-      activeAlert = false;
+    } else {
       statusBox.className = "status-box";
       statusTitle.textContent = "✓ No Active Emergency";
-      statusMessage.textContent =
-        "The demo system is ready. No active SOS alert.";
-      alertTime.textContent = "—";
+      statusMessage.textContent = "No active SOS alert.";
       responseStatus.textContent = "Waiting";
-      ackButton.disabled = true;
+    }
 
-      addEvent("Dashboard reset (demo)");
+    alertTime.textContent = alert?.timestamp
+      ? new Date(alert.timestamp).toLocaleString()
+      : "—";
+
+    ackButton.disabled = !active || acknowledged;
+  }
+
+  onValue(alertRef, snapshot => {
+    showAlert(snapshot.val());
+    connection.textContent = "● Firebase Connected";
+  }, error => {
+    connection.textContent = "● Firebase Error";
+    console.error("Alert listener failed:", error);
+  });
+
+  onValue(historyRef, snapshot => {
+    historyList.replaceChildren();
+    const records = [];
+
+    snapshot.forEach(child => {
+      records.push(child.val());
     });
-  </script>
+
+    records.reverse().slice(0, 8).forEach(event => {
+      const item = document.createElement("li");
+      item.textContent =
+        new Date(event.timestamp).toLocaleString() + " — " +
+        event.message;
+      historyList.appendChild(item);
+    });
+
+    if (records.length === 0) {
+      const item = document.createElement("li");
+      item.className = "empty";
+      item.textContent = "No events recorded yet.";
+      historyList.appendChild(item);
+    }
+  }, error => {
+    console.error("History listener failed:", error);
+  });
+
+  document.getElementById("sosButton").addEventListener("click", async () => {
+    try {
+      const alert = {
+        active: true,
+        acknowledged: false,
+        timestamp: Date.now(),
+        source: "web-dashboard"
+      };
+
+      await set(alertRef, alert);
+      await logEvent("SOS alert activated from dashboard");
+    } catch (error) {
+      alert("Could not send alert. Check Firebase access and internet.");
+      console.error(error);
+    }
+  });
+
+  ackButton.addEventListener("click", async () => {
+    try {
+      const snapshot = await import(
+        "https://www.gstatic.com/firebasejs/12.5.0/firebase-database.js"
+      ).then(module => module.get(ref(db, "carelink/currentAlert")));
+
+      const alert = snapshot.val();
+      if (!alert?.active || alert.acknowledged) return;
+
+      await update(alertRef, {
+        acknowledged: true,
+        acknowledgedAt: Date.now()
+      });
+
+      await logEvent("SOS alert acknowledged");
+    } catch (error) {
+      alert("Could not acknowledge alert. Check Firebase access.");
+      console.error(error);
+    }
+  });
+
+  document.getElementById("resetButton").addEventListener("click", async () => {
+    try {
+      await set(alertRef, {
+        active: false,
+        acknowledged: false,
+        timestamp: null,
+        source: "web-dashboard"
+      });
+
+      await logEvent("Dashboard reset");
+    } catch (error) {
+      alert("Could not reset. Check Firebase access.");
+      console.error(error);
+    }
+  });
+</script>
 </body>
 </html>
+
